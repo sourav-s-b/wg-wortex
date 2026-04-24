@@ -1,0 +1,31 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependency directories
+node_modules/
+
+# Built files (The "solidified" app)
+dist/
+out/
+build/
+release/
+
+# IDE / Editor folders
+.vscode/
+.idea/
+.DS_Store
+
+# Environment variables (Sensitive data)
+.env
+.env.local
+.env.*.local
+
+# Vite / Electron-Vite specific
+*.local
+*.mjs.map
+*.js.map
+
+resources/games/*
+saves/*
