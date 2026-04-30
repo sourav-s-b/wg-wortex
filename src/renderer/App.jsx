@@ -1,9 +1,18 @@
+import { useEffect, useState } from "react";
+import { useTheme } from "./ThemeContext";
+import TitleBar from "./components/TitleBar";
+import Hero from "./sections/Hero";
 
 export default function App() {
-  return (
-    <div className="h-screen bg-slate-900 text-white flex flex-col items-center justify-center">
-      <h1 className="text-5xl font-bold text-blue-400">SMRTI</h1>
-      <p className="mt-4 text-slate-400">Manual Configuration Complete. I am ready.</p>
-    </div>
-  );
+    const { isDark, toggle } = useTheme();
+
+
+    return (
+        <div className="h-screen w-full bg-background-300 text-text-50 transition-colors duration-300 ">
+            <TitleBar />
+            <Hero />
+        </div>
+    );
 }
+
+
