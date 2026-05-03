@@ -28,41 +28,44 @@ export default function TitleBar() {
 
     return (
         <header className="drag-region bg-background-50 flex justify-end p-2 gap-5">
-            <p className="text-text-50 flex-1">WebGames-Vortex</p>
+            <p className="text-text-50 flex- w-full">WebGames-Vortex</p>
             {/* Minimize */}
-            <button onClick={handleMinimize}>
+            <button onClick={handleMinimize}
+                className="hover:bg-slate-500 h-[25px] w-[25px]"
+            >
                 <GetSvg>
                     <path d="M2 8H10" strokeWidth="1.2" strokeLinecap="round" />
                 </GetSvg>
             </button>
             <button
                 onClick={handleMaximize}
+                className="hover:bg-slate-500 h-[25px] w-[25px]"
             >
                 <GetSvg >{
                     isMaximized
                         ? <rect x="4.5" y="0.5" width="7" height="7" strokeWidth="1.2" />
                         : <></>
                 }
-                    <rect x="2.5" y="2.5" width="7" height="7" strokeWidth="1.2" className="fill-background-100" />{" "}
+                    <rect x="2.5" y="2.5" width="7" height="7" strokeWidth="1.2" className="fill-background-100 hover:fill-slate-500" />{" "}
                 </GetSvg>
             </button>
-            <button onClick={handleClose}>
-                <GetSvg>
-                    <path
-                        d="M3 3L9 9M9 3L3 9"
-                        strokeWidth="1.2"
-                        strokeLinecap="round"
-                    />{" "}
-                </GetSvg>
-            </button>
-        </header>
+            <button onClick={handleClose} className="hover:bg-slate-500 h-[25px] w-[25px]">
+            <GetSvg>
+                <path
+                    d="M3 3L9 9M9 3L3 9"
+                    strokeWidth="1.2"
+                    strokeLinecap="round"
+                />{" "}
+            </GetSvg>
+        </button>
+        </header >
     )
 }
 
 const GetSvg = ({ children }) => {
     return (
         <svg
-            className="text-text-50 no-drag"
+            className="text-text-50 no-drag  "
             width="20"
             height="20"
             viewBox="0 0 12 12"
