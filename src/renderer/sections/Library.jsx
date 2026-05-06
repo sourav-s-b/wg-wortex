@@ -1,6 +1,7 @@
-import { BadgePlus } from "lucide-react";
+import { BadgePlus, RefreshCcw } from "lucide-react";
 import AddModal from "../components/AddModal";
 import { useEffect, useState } from "react";
+import GameCard from "../components/GameCard";
 
 export default function Library() {
   const [isModel, setIsModel] = useState(false);
@@ -9,10 +10,10 @@ export default function Library() {
   useEffect(() => {
     fetchGames();
   }, []);
-  
+
   const fetchGames = async () => {
     const gamesList = await window.dbAPI.getGames();
-    setIsGames(gamesList);
+    setIsGames([...gamesList]);
   };
 
   return (
@@ -37,21 +38,33 @@ export default function Library() {
             className="bg-secondary-200 border rounded p-2 w-1/4 focus:outline-none focus:border-primary-500"
             placeholder="Name..."
           />
+          {/* spacer */}
           <div className="flex-1" />
+
+          <button
+            onClick={() => fetchGames()}
+            className="w-1/20 h-full mx-2 bg-primary-300 border-2 border-secondary-400 flex justify-center items-center hover:bg-primary-200 focus:outline-none"
+          >
+            <RefreshCcw />
+          </button>
           <button
             onClick={() => setIsModel(true)}
-            className="w-1/20 h-full bg-primary-300 border-2 border-secondary-400 flex justify-center items-center hover:bg-primary-200 focus:outline-none"
+            className="w-1/20 h-full mx-2 bg-primary-300 border-2 border-secondary-400 flex justify-center items-center hover:bg-primary-200 focus:outline-none"
           >
             <BadgePlus />
           </button>
         </div>
 
         {/* Content*/}
-        <div className="bg-background-200 flex-1 border-primary-600 border-2 rounded-2xl flex justify-center flex-col">
+        <div className="bg-background-200 flex-1 border-primary-600 border-2 rounded-2xl overflow-y-auto min-h-0">
           {games.length == 0 ? (
             <h1 className="text-text-100 text-center">No games added yet..</h1>
           ) : (
-            <div></div>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-4 p-4">
+              {games.map((game, index) => (
+                <GameCard key={index} name={game.name} />
+              ))}
+            </div>
           )}
         </div>
       </section>

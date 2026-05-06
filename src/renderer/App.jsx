@@ -17,7 +17,7 @@ export default function App() {
                 <div className="relative flex-1 h-full w-full">
                     <SideMenu />
                     <Routes>
-                        <Route path="/" element={<Home />} />
+                        <Route path="/" element={<Library />} />
                         <Route path="/library" element={<Library />} />
                     </Routes>
                 </div>

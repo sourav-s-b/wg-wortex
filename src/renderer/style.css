@@ -19,6 +19,23 @@ body,
   -webkit-app-region: no-drag;
 }
 
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4a5568; /* Use a color from your palette */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2d3748;
+}
+
 /* 2. Tailwind v4 Theme Mapping */
 /* Mapping these allows you to use classes like bg-primary-500 or text-secondary-200 */
 @theme {
