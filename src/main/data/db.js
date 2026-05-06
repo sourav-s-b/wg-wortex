@@ -19,6 +19,7 @@ export const dbManager = {
   addGame: (name, path) =>
     db.prepare("INSERT INTO games (name,path) VALUES (? , ?)").run(name, path),
   getGames: () => db.prepare("SELECT * FROM games").all(),
+  getGame: (id) => db.prepare("SELECT * FROM games WHERE id = ?").get(id),
   updateLastPlayed: (id) =>
     db
       .prepare("UPDATE games SET lastPlayed = CURRENT_TIMESTAMP WHERE id = ?")
@@ -26,5 +27,5 @@ export const dbManager = {
   incrementPlayTime: (id, seconds) =>
     db
       .prepare("UPDATE games SET playTime = playTime + ? WHERE id = ? ")
-      .run(id,seconds),
+      .run(id, seconds),
 };

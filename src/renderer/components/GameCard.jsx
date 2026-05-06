@@ -1,7 +1,9 @@
-export default function GameCard({ name, path }) {
+import { NavLink } from "react-router-dom";
+
+export default function GameCard({id, name }) {
   return (
-    <div
-      className="w-[150px] h-[250px] bg-primary-500
+    <NavLink  
+      to = {`/game/${id}`}className="w-[150px] h-[250px] bg-primary-500
                 text-white
                 border-secondary-500 border-2 rounded-3xl m-0.5
                 flex justify-center items-center
@@ -10,7 +12,7 @@ export default function GameCard({ name, path }) {
                 text-center
                 "
     >
-      <span className="whitespace-normal wrap-break-word w-full">{name}</span>
-    </div>
+        <span className="whitespace-normal wrap-break-word w-full">{name}</span>
+    </NavLink>
   );
 }

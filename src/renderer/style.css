@@ -28,12 +28,12 @@ body,
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #4a5568; /* Use a color from your palette */
+  background: var(--accent-800); /* Use a color from your palette */
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2d3748;
+  background: var(--accent-400);
 }
 
 /* 2. Tailwind v4 Theme Mapping */

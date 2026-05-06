@@ -16,6 +16,9 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, "../preload/preload.mjs"),
       sandbox: false,
+      webviewTag: true,
+      nodeIntegration: false,
+      contextIsolation: true,
     },
   });
 
@@ -31,7 +34,6 @@ function createWindow() {
 
   mainWindow.once("ready-to-show", () => {
     mainWindow.show();
-    // Open DevTools automatically while we are building
     mainWindow.webContents.openDevTools();
   });
 }

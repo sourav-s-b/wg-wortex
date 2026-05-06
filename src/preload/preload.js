@@ -19,5 +19,6 @@ contextBridge.exposeInMainWorld("windowAPI", {
 
 contextBridge.exposeInMainWorld("dbAPI", {
   getGames: () => ipcRenderer.invoke("get-games"),
+  getGame: (id) => ipcRenderer.invoke("get-game",id),
   addGame: (name, path) => ipcRenderer.invoke("add-game", name, path),
 });

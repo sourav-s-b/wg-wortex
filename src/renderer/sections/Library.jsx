@@ -58,11 +58,13 @@ export default function Library() {
         {/* Content*/}
         <div className="bg-background-200 flex-1 border-primary-600 border-2 rounded-2xl overflow-y-auto min-h-0">
           {games.length == 0 ? (
-            <h1 className="text-text-100 text-center">No games added yet..</h1>
+            <h1 className="flex text-text-100 items-center justify-center h-full">
+              No games added yet..
+            </h1>
           ) : (
             <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-4 p-4">
-              {games.map((game, index) => (
-                <GameCard key={index} name={game.name} />
+              {games.map((game) => (
+                <GameCard key={game.id} id={game.id} name={game.name} />
               ))}
             </div>
           )}
