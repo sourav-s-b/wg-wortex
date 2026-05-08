@@ -42,6 +42,7 @@ export default function Library() {
           <div className="flex-1" />
 
           <button
+            type="button"
             onClick={() => fetchGames()}
             className="w-1/20 h-full mx-2 bg-primary-300 border-2 border-secondary-400 flex justify-center items-center hover:bg-primary-200 focus:outline-none"
           >
@@ -62,7 +63,7 @@ export default function Library() {
               No games added yet..
             </h1>
           ) : (
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-4 p-4">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4 p-4">
               {games.map((game) => (
                 <GameCard key={game.id} id={game.id} name={game.name} />
               ))}
