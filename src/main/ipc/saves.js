@@ -161,4 +161,58 @@ export function registerSaveIpc() {
       }
     },
   );
+
+  ipcMain.handle(
+    "load-save",
+    async (_, { gameName, playthrough, saveName }) => {
+      try {
+        const sanitized = getSanitized(gameName);
+
+        const folderOptions = [
+          sanitized,
+          `persist_${sanitized}`,
+          `persist:${sanitized}`,
+        ];
+
+        let actualFolderName = folderOptions.find((folder) =>
+          fs.existsSync(path.join(PARTIONS_PATH, folder)),
+        );
+
+        const destination = path.join(
+          PARTIONS_PATH,
+          actualFolderName || sanitized,
+        );
+        const sourceZip = path.join(
+          SAVES_PATH,
+          sanitized,
+          playthrough,
+          `${saveName}.zip`,
+        );
+
+        if (!fs.existsSync(sourceZip))
+          return { success: false, error: err.message };
+
+        if (fs.existsSync(destination)) {
+          const items = await fs.readdir(destination);
+          const toPreserve = ["Cache", "Network", ".lock", "LOCK"];
+
+          for (const item of items) {
+            const isProtected = toPreserve.some((protectedName) =>
+              item.includes(protectedName),
+            );
+
+            if (!isProtected) {
+              await fs.remove(path.join(destination, item));
+            }
+          }
+        }
+        const zip = new AdmZip(sourceZip);
+        zip.extractAllTo(destination, true);
+        return { success: true };
+      } catch (err) {
+        console.error("Load Error ", err);
+        return { success: false, error: err.message };
+      }
+    },
+  );
 }

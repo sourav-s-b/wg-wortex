@@ -31,12 +31,13 @@ export default function SaveTable({ gameName }) {
     const data = await window.saveAPI.saveGame(
       gameName,
       saveName,
-      selectedPlaythrough.playthrough,
+      selectedPlaythrough,
     );
     if (data.success === false) {
       alert(data.error);
       return;
     }
+    setSelectedPlaythrough(selectedPlaythrough ?? "Default");
     await fetchSaves();
   };
 
@@ -67,13 +68,40 @@ export default function SaveTable({ gameName }) {
     await fetchSaves();
   };
 
+  const handleLoad = async (saveName) => {
+    const webview = document.querySelector("webview");
+    const originalSrc = webview.src;
+    webview.stop();
+    // 1. Point the webview away to release file locks
+    webview.src = "about:blank";
+    await webview.getWebContents().session.clearStorageData();
+
+    // Give it a tiny heartbeat to ensure the process releases the files
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const data = await window.saveAPI.loadSave(
+      gameName,
+      activePlaythrough.playthrough,
+      saveName,
+    );
+    if (data.success === false) {
+      alert(data.error);
+      webview.src = originalSrc;
+      return;
+    }
+    webview.src = originalSrc;
+    webview.reload();
+  };
+
   const SaveTab = ({ saveName }) => {
     return (
       <div className="h-full flex m-2 border-2 rounded-sm p-2 items-center">
         <p className="block flex-1 text-center text-2xl font-semibold">
           {saveName}
         </p>
-        <button className=" hover:bg-primary-500 p-2 m-2 border-2 rounded-xl">
+        <button
+          className=" hover:bg-primary-500 p-2 m-2 border-2 rounded-xl"
+          onClick={() => handleLoad(saveName)}
+        >
           Load
         </button>
         <button

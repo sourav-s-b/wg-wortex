@@ -29,6 +29,8 @@ contextBridge.exposeInMainWorld("saveAPI", {
     ipcRenderer.invoke("manual-save", { gameName, saveName, playthrough }),
   deleteSave: (gameName, playthrough, saveName) =>
     ipcRenderer.invoke("delete-save", { gameName, playthrough, saveName }),
+  loadSave: (gameName, playthrough, saveName) =>
+    ipcRenderer.invoke("load-save", { gameName, playthrough, saveName }),
   addPlaythrough: (gameName, playthroughName) =>
     ipcRenderer.invoke("add-playthrough", { gameName, playthroughName }),
 });
