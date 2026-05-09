@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { registerWindowIpc } from "./ipc/window";
 import { registerDatabaseIpc } from "./ipc/libraryDb";
+import { registerSaveIpc } from "./ipc/saves";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -25,6 +26,7 @@ function createWindow() {
   //ipc's
   registerWindowIpc(mainWindow);
   registerDatabaseIpc();
+  registerSaveIpc();
 
   if (process.env.ELECTRON_RENDERER_URL) {
     mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL);
