@@ -1,7 +1,7 @@
 import { Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export default function SaveTable({ gameName }) {
+export default function SaveTable({ gameName,}) {
   const [saveData, setSaveData] = useState([]);
   const [saveName, setSaveName] = useState(null);
   const [newPlayName, setNewPlayName] = useState(null);
@@ -69,15 +69,6 @@ export default function SaveTable({ gameName }) {
   };
 
   const handleLoad = async (saveName) => {
-    const webview = document.querySelector("webview");
-    const originalSrc = webview.src;
-    webview.stop();
-    // 1. Point the webview away to release file locks
-    webview.src = "about:blank";
-    await webview.getWebContents().session.clearStorageData();
-
-    // Give it a tiny heartbeat to ensure the process releases the files
-    await new Promise((resolve) => setTimeout(resolve, 500));
     const data = await window.saveAPI.loadSave(
       gameName,
       activePlaythrough.playthrough,
@@ -85,11 +76,9 @@ export default function SaveTable({ gameName }) {
     );
     if (data.success === false) {
       alert(data.error);
-      webview.src = originalSrc;
+
       return;
     }
-    webview.src = originalSrc;
-    webview.reload();
   };
 
   const SaveTab = ({ saveName }) => {

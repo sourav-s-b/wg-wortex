@@ -1,4 +1,4 @@
-import { app, ipcMain } from "electron";
+import { app, ipcMain, session, webContents } from "electron";
 import path from "path";
 import fs from "fs-extra";
 import AdmZip from "adm-zip";
@@ -192,9 +192,18 @@ export function registerSaveIpc() {
         if (!fs.existsSync(sourceZip))
           return { success: false, error: err.message };
 
+        
+        const partitionKey = `persist:${sanitized}`;
+        const allContents = webContents.getAllWebContents();
+        for (const wc of allContents) {
+          if (wc.session === session.fromPartition(partitionKey)) {
+            wc.forcefullyCrashRenderer(); // releases all file locks immediately
+          }
+        }
+
         if (fs.existsSync(destination)) {
           const items = await fs.readdir(destination);
-          const toPreserve = ["Cache", "Network", ".lock", "LOCK"];
+          const toPreserve = ["Cache", "Network", ".lock", "LOCK", "DIPS"];
 
           for (const item of items) {
             const isProtected = toPreserve.some((protectedName) =>

@@ -7,6 +7,7 @@ import SaveTable from "../components/SaveTable";
 export default function GameScreen() {
   const { id } = useParams();
   const [game, setGame] = useState(null);
+  const [isReloading, setIsReloading] = useState(false);
 
   const webviewRef = useRef(null);
 
@@ -69,13 +70,19 @@ export default function GameScreen() {
         </h1>
       </div>
       {/* WebView */}
-      <webview
-        src={game.path}
-        ref={webviewRef}
-        partition={`persist:${game.name.replace(/\s+/g, "_").toLowerCase()}`}
-        className="h-[84vh] m-3 border-2"
+
+      {!isReloading && (
+        <webview
+          src={game.path}
+          ref={webviewRef}
+          partition={`persist:${game.name.replace(/\s+/g, "_").toLowerCase()}`}
+          className="h-[84vh] m-3 border-2"
+        />
+      )}
+
+      <SaveTable
+        gameName={game.name}
       />
-      <SaveTable gameName={game.name}/>
       <div className="h-[6vh]" />
     </div>
   );
