@@ -25,8 +25,8 @@ contextBridge.exposeInMainWorld("dbAPI", {
 
 contextBridge.exposeInMainWorld("saveAPI", {
   getSaves: (gameName) => ipcRenderer.invoke("get-saves", gameName),
-  saveGame: (gameName, saveName, playthrough = "Default") =>
-    ipcRenderer.invoke("manual-save", { gameName, saveName, playthrough }),
+  saveGame: (gameName, saveName, playthrough = "Default", payload) =>
+    ipcRenderer.invoke("manual-save", { gameName, saveName, playthrough , payload }),
   deleteSave: (gameName, playthrough, saveName) =>
     ipcRenderer.invoke("delete-save", { gameName, playthrough, saveName }),
   loadSave: (gameName, playthrough, saveName) =>
