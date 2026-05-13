@@ -3,75 +3,69 @@ import path from "path";
 import fs from "fs-extra";
 import AdmZip from "adm-zip";
 
-const PARTIONS_PATH = path.join(app.getPath("userData"), "Partitions");
 const SAVES_PATH = path.join(app.getPath("userData"), "Saves");
 
 export function registerSaveIpc() {
   const getSanitized = (name) => name.replace(/\s+/g, "_").toLowerCase();
 
+  ipcMain.handle("get-saves", async (_, gameName) => {
+    try {
+      const sanitized = getSanitized(gameName);
+      const gameSavesPath = path.join(SAVES_PATH, sanitized);
+
+      if (!fs.existsSync(gameSavesPath)) {
+        await fs.ensureDir(path.join(gameSavesPath, "Default"));
+        return { success: true, data: [{playthrough: "Default" , saves: []}] };
+      }
+
+      const playthroughs = await fs.readdir(gameSavesPath);
+      const result = await Promise.all(playthroughs.map(async (playthrough) => {
+        const playthroughPath = path.join(gameSavesPath, playthrough);
+
+        const stat = await fs.stat(playthroughPath);
+        if (stat.isDirectory()) {
+          const files = await fs.readdir(playthroughPath);
+          const saves = files
+            .filter((file) => file.endsWith(".json"))
+            .map((file) => path.parse(file).name);
+
+          return {playthrough,saves}
+        }
+        return null
+      ));
+      return { success: true, data: result.filter(item => item !== null) };
+    } catch (err) {
+      console.error("Error in getting the saves", err.message);
+      return { success: false, error: err.message };
+    }
+  });
+
   ipcMain.handle(
     "manual-save",
-    async (event, { gameName, saveName, playthrough = "Default" }) => {
-      const tempPath = path.join(
-        app.getPath("temp"),
-        "wg-vortex",
-        `vortex_temp_${Date.now()}`,
-      );
-      try {
+    async (event, { gameName, saveName, playthrough = "Default" , payload }) => {
+      try{
         const sanitized = getSanitized(gameName);
-
-        const folderOptions = [
-          sanitized,
-          `persist_${sanitized}`,
-          `persist:${sanitized}`,
-        ];
-
-        let actualFolderName = folderOptions.find((folder) =>
-          fs.existsSync(path.join(PARTIONS_PATH, folder)),
-        );
-
-        if (!actualFolderName) {
-          console.error(`Game data folder not found in ${PARTIONS_PATH}`);
-          return {
-            success: false,
-            error: `Game data folder not found in ${PARTIONS_PATH}`,
-          };
-        }
-
-        playthrough = playthrough ?? "Default";
-
-        const source = path.join(PARTIONS_PATH, actualFolderName);
-        const destZip = path.join(
+        const savePath = path.join(
           SAVES_PATH,
           sanitized,
           playthrough,
-          `${saveName}.zip`,
+          `${saveName}.json`
         );
 
-        const zip = new AdmZip();
-        //copying to temp with filters
-        await fs.copy(source, tempPath, {
-          filter: (src) => {
-            const isBloat = src.includes("Cache") || src.includes("Network");
-            const isLock = src.includes(".lock") || src.includes("LOCK");
-            return !isBloat && !isLock;
-          },
-        });
+        const data = typeof payload === "string"
+          ? payload
+          : JSON.stringify(payload,null,2);
 
-        //adding to zip
-        zip.addLocalFolder(tempPath);
-
-        // writing save zip
-        await fs.ensureDir(path.dirname(destZip));
-        await zip.writeZipPromise(destZip);
+        await fs.ensureDir(path.dirname(savePath));
+        await fs.writeFile(savePath, data ,'utf-8');
 
         return {
           success: true,
+          save: saveName
         };
       } catch (err) {
-        console.error("Save Error: ", err);
+        console.error("Save Error: ", err.message);
         return { success: false, error: err.message };
-      } finally {
       }
     },
   );
@@ -86,51 +80,15 @@ export function registerSaveIpc() {
           sanitized,
           playthroughName,
         );
-        fs.ensureDir(playthoughPath);
-        return { success: true };
-      } catch (error) {
-        console.error("Playthrough Error: ", error);
+        await fs.ensureDir(playthoughPath);
+        return { success: true ,playthough: playthroughName};
+      } catch (err) {
+        console.error("Playthrough Error: ", err.message);
 
         return { success: false, error: err.message };
       }
     },
   );
-
-  ipcMain.handle("get-saves", async (_, gameName) => {
-    try {
-      const sanitized = getSanitized(gameName);
-      const gameSavesPath = path.join(SAVES_PATH, sanitized);
-
-      if (!fs.existsSync(gameSavesPath)) {
-        fs.ensureDir(gameSavesPath);
-        return { success: true, data: [] };
-      }
-
-      const playthroughs = await fs.readdir(gameSavesPath);
-      const result = [];
-
-      for (const playthrough of playthroughs) {
-        const playthroughPath = path.join(gameSavesPath, playthrough);
-
-        const stat = await fs.stat(playthroughPath);
-        if (stat.isDirectory()) {
-          const files = await fs.readdir(playthroughPath);
-          const saves = files
-            .filter((file) => file.endsWith(".zip"))
-            .map((file) => path.parse(file).name);
-
-          result.push({
-            playthrough: playthrough,
-            saves: saves,
-          });
-        }
-      }
-      return { success: true, data: result };
-    } catch (err) {
-      console.error("Error in getting the saves", err);
-      return { success: false, error: err.message };
-    }
-  });
 
   ipcMain.handle(
     "delete-save",
@@ -141,22 +99,14 @@ export function registerSaveIpc() {
           SAVES_PATH,
           sanitized,
           playthrough,
-          `${saveName}.zip`,
+          `${saveName}.json`,
         );
 
-        try {
-          await fs.access(savePath);
-        } catch (e) {
-          console.error("No Save file", savePath);
-          return { success: false, error: e };
-        }
+        await fs.remove(savePath);
 
-        await fs.unlink(savePath);
-        console.log(`Deleted save: ${saveName}`);
-
-        return { success: true };
+        return { success: true , save: saveName };
       } catch (err) {
-        console.error("Error in deleting the saves", err);
+        console.error("Error in deleting the saves", err.message);
         return { success: false, error: err.message };
       }
     },
@@ -166,60 +116,22 @@ export function registerSaveIpc() {
     "load-save",
     async (_, { gameName, playthrough, saveName }) => {
       try {
-        const sanitized = getSanitized(gameName);
+       const sanitized = getSanitized(gameName);
+       const savePath = path.join(
+         SAVES_PATH,
+         sanitized,
+         playthrough,
+         `${saveName}.json`
+       );
 
-        const folderOptions = [
-          sanitized,
-          `persist_${sanitized}`,
-          `persist:${sanitized}`,
-        ];
+      if (!(await fs.pathExists(savePath))) {
+         return { success: false, error: "Save file not found" };
+      }
 
-        let actualFolderName = folderOptions.find((folder) =>
-          fs.existsSync(path.join(PARTIONS_PATH, folder)),
-        );
-
-        const destination = path.join(
-          PARTIONS_PATH,
-          actualFolderName || sanitized,
-        );
-        const sourceZip = path.join(
-          SAVES_PATH,
-          sanitized,
-          playthrough,
-          `${saveName}.zip`,
-        );
-
-        if (!fs.existsSync(sourceZip))
-          return { success: false, error: err.message };
-
-        
-        const partitionKey = `persist:${sanitized}`;
-        const allContents = webContents.getAllWebContents();
-        for (const wc of allContents) {
-          if (wc.session === session.fromPartition(partitionKey)) {
-            wc.forcefullyCrashRenderer(); // releases all file locks immediately
-          }
-        }
-
-        if (fs.existsSync(destination)) {
-          const items = await fs.readdir(destination);
-          const toPreserve = ["Cache", "Network", ".lock", "LOCK", "DIPS"];
-
-          for (const item of items) {
-            const isProtected = toPreserve.some((protectedName) =>
-              item.includes(protectedName),
-            );
-
-            if (!isProtected) {
-              await fs.remove(path.join(destination, item));
-            }
-          }
-        }
-        const zip = new AdmZip(sourceZip);
-        zip.extractAllTo(destination, true);
-        return { success: true };
+      const payLoadData = await fs.readJson(savePath);
+      return {success:true,data: payLoadData}
       } catch (err) {
-        console.error("Load Error ", err);
+        console.error("Load Error ", err.message);
         return { success: false, error: err.message };
       }
     },

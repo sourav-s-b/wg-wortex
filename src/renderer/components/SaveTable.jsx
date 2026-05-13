@@ -1,7 +1,13 @@
 import { Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export default function SaveTable({ gameName,}) {
+export default function SaveTable({
+  gameName,
+  onSave,
+  onNewPlaythrough,
+  onSaveDelete,
+  onLoad,
+}) {
   const [saveData, setSaveData] = useState([]);
   const [saveName, setSaveName] = useState(null);
   const [newPlayName, setNewPlayName] = useState(null);
@@ -9,12 +15,13 @@ export default function SaveTable({ gameName,}) {
 
   useEffect(() => {
     fetchSaves();
+    setSelectedPlaythrough("Default");
   }, []);
 
   const fetchSaves = async () => {
     const data = await window.saveAPI.getSaves(gameName);
     if (data.success === false) {
-      // console.error(data.error);
+      console.error(data.error);
       alert(data.error);
     } else {
       console.log(data.data);
@@ -28,15 +35,7 @@ export default function SaveTable({ gameName,}) {
       alert("Please Type Save Name");
       return;
     }
-    const data = await window.saveAPI.saveGame(
-      gameName,
-      saveName,
-      selectedPlaythrough,
-    );
-    if (data.success === false) {
-      alert(data.error);
-      return;
-    }
+    await onSave(saveName, playthrough);
     setSelectedPlaythrough(selectedPlaythrough ?? "Default");
     await fetchSaves();
   };
@@ -47,38 +46,17 @@ export default function SaveTable({ gameName,}) {
       alert("Please Type playthrough Name");
       return;
     }
-    const data = await window.saveAPI.addPlaythrough(gameName, playthroughName);
-    if (data.success === false) {
-      alert(data.error);
-      return;
-    }
+    await onNewPlaythrough(playthrough);
     await fetchSaves();
   };
 
   const handleSaveDelete = async (saveName) => {
-    const data = await window.saveAPI.deleteSave(
-      gameName,
-      activePlaythrough.playthrough,
-      saveName,
-    );
-    if (data.success === false) {
-      alert(data.error);
-      return;
-    }
+    await onSaveDelete(saveName, activePlaythrough.playthrough);
     await fetchSaves();
   };
 
   const handleLoad = async (saveName) => {
-    const data = await window.saveAPI.loadSave(
-      gameName,
-      activePlaythrough.playthrough,
-      saveName,
-    );
-    if (data.success === false) {
-      alert(data.error);
-
-      return;
-    }
+    await onLoad(saveName, activePlaythrough.playthrough);
   };
 
   const SaveTab = ({ saveName }) => {

@@ -51,6 +51,52 @@ export default function GameScreen() {
     };
   }, [game]);
 
+  const handleNewSave = async (saveName, playthrough) => {
+    const data = await window.saveAPI.saveGame(
+      game.name,
+      saveName,
+      playthrough,
+    );
+    if (data.success === false) {
+      alert(data.error);
+      return;
+    }
+  };
+
+  const handleNewPlaythrough = async (playthrough) => {
+    const data = await window.saveAPI.addPlaythrough(game.name, playthrough);
+    if (data.success === false) {
+      alert(data.error);
+      return;
+    }
+  };
+
+  const handleSaveDelete = async (saveName, playthrough) => {
+    const data = await window.saveAPI.deleteSave(
+      game.name,
+      playthrough,
+      saveName,
+    );
+    if (data.success === false) {
+      alert(data.error);
+      return;
+    }
+  };
+
+  const handleLoadSave = async (saveName, playthrough) => {
+    const data = await window.saveAPI.loadSave(
+      game.name,
+      playthrough,
+      saveName,
+    );
+    if (data.success === false) {
+      alert(data.error);
+      return;
+    } else {
+      console.log("Saved Successfully");
+    }
+  };
+
   if (!game)
     return (
       <div className="text-5xl h-full flex justify-center items-center">
@@ -75,13 +121,17 @@ export default function GameScreen() {
         <webview
           src={game.path}
           ref={webviewRef}
-          partition={`persist:${game.name.replace(/\s+/g, "_").toLowerCase()}`}
+          partition={`${game.name.replace(/\s+/g, "_").toLowerCase()}`}
           className="h-[84vh] m-3 border-2"
         />
       )}
 
       <SaveTable
         gameName={game.name}
+        onSave={handleNewSave}
+        onNewPlaythrough={handleNewPlaythrough}
+        onSaveDelete={handleSaveDelete}
+        onLoad={handleLoadSave}
       />
       <div className="h-[6vh]" />
     </div>
