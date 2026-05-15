@@ -1,6 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { NavLink } from "react-router-dom";
 import SaveTable from "../components/SaveTable";
 
@@ -182,6 +182,8 @@ export default function GameScreen() {
   const [isGameVisible, setIsGameVisible] = useState(false);
   const webviewRef = useRef(null);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     window.dbAPI
       .getGame(id)
@@ -198,16 +200,6 @@ export default function GameScreen() {
     if (!webview) return;
 
     const handleDomReady = async () => {
-      const diagnosis = await webviewRef.current.executeJavaScript(`
-        ({
-          hasSave: typeof SugarCube !== 'undefined' && typeof SugarCube.Save,
-          hasEngine: typeof SugarCube !== 'undefined' && typeof SugarCube.Engine,
-          hasBase64: typeof SugarCube !== 'undefined' && typeof SugarCube.Save?.base64,
-          localStorageKeys: Object.keys(localStorage),
-          title: document.title,
-        })
-      `);
-      console.log("WEBVIEW DIAGNOSIS:", diagnosis);
       webview.insertCSS(`
           ::-webkit-scrollbar {
             width: 8px;
@@ -227,10 +219,47 @@ export default function GameScreen() {
       setIsGameVisible(true);
     };
 
+    //for loading latest autosave
     webview.addEventListener("dom-ready", handleDomReady);
+    const checkAutosave = async () => {
+      const savesData = await window.saveAPI.getSaves(game.name);
+      const autoSaveEntry = savesData.data.find(
+        (i) => i.playthrough === "AutoSave",
+      );
+
+      if (autoSaveEntry && autoSaveEntry.length !== 0) {
+        const lastSave = autoSaveEntry.saves[0];
+        await handleLoadSave(lastSave.name, "AutoSave");
+      }
+    };
+    checkAutosave();
+
+    // for autosave when closing the app
+    const handleForceAutoSave = async () => {
+      if (webviewRef.current && game) {
+        try {
+          const savesData = await window.saveAPI.getSaves(game.name);
+          const autoSaveEntry = savesData.data.find(
+            (i) => i.playthrough === "AutoSave",
+          );
+          const nextIndex = (autoSaveEntry?.saves.length || 0) + 1;
+
+          await handleNewSave(`AutoSave-${nextIndex}`, "AutoSave");
+        } catch (e) {
+          console.error("Emergency save failed:", err);
+        } finally {
+          window.windowAPI.confirmSaveFinished();
+        }
+      } else {
+        window.windowAPI.confirmSaveFinished();
+      }
+    };
+
+    const unsubscribe = window.windowAPI.onForceAutoSave(handleForceAutoSave);
 
     return () => {
       webview.removeEventListener("dom-ready", handleDomReady);
+      unsubscribe();
     };
   }, [game]);
 
@@ -338,15 +367,30 @@ export default function GameScreen() {
         );
         if (result?.error) throw new Error(result.error);
 
-        // Reboot the generic engine
         webview.reload();
 
-        // Wait for dom-ready to handle the un-hiding naturally,
-        // but keep a fallback timeout just in case.
         setTimeout(() => setIsGameVisible(true), 500);
       } catch (err) {
         alert("Failed to load Generic save data: " + err.message);
         setIsGameVisible(true);
+      }
+    }
+  };
+
+  const handleBackNavigation = async () => {
+    if (webviewRef.current) {
+      try {
+        const savesData = await window.saveAPI.getSaves(game.name);
+        const autoSaveEntry = savesData.data.find(
+          (i) => i.playthrough === "AutoSave",
+        );
+        const nextIndex = (autoSaveEntry?.saves.length || 0) + 1;
+
+        await handleNewSave(`AutoSave-${nextIndex}`, "AutoSave");
+
+        navigate("/library");
+      } catch (err) {
+        console.error("Autosave failed during exit:", err);
       }
     }
   };
@@ -359,9 +403,9 @@ export default function GameScreen() {
     <div className="h-full overflow-y-auto">
       {/* Title And Button*/}
       <div className="sticky top-0 flex h-[8.25vh] items-center px-15 bg-background-50 border-b-2 border-text-50 ">
-        <NavLink to="/library">
+        <button onClick={handleBackNavigation} className="cursor-pointer">
           <ArrowLeft />
-        </NavLink>
+        </button>
         <h1 className="text-7xl font-semibold flex-1 text-center">
           {game.name}
         </h1>
@@ -369,7 +413,6 @@ export default function GameScreen() {
       {/* WebView */}
 
       <div className="relative h-[84vh] m-3 border-2">
-        {/* LOCALIZED LOADING OVERLAY */}
         {!isGameVisible && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background-50">
             <div className="text-2xl font-bold animate-pulse text-center">
@@ -378,7 +421,6 @@ export default function GameScreen() {
           </div>
         )}
 
-        {/* WebView - Full height/width of the parent container */}
         <webview
           src={game.path}
           ref={webviewRef}

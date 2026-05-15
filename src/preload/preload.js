@@ -11,6 +11,13 @@ contextBridge.exposeInMainWorld("windowAPI", {
     ipcRenderer.on("window-unmaximized", subscription);
     return () => ipcRenderer.removeListener("window-unmaximized", subscription);
   },
+  onForceAutoSave: (callback) => {
+    const subscription = (_event) => callback();
+    ipcRenderer.on("request-force-autosave", subscription);
+    return () =>
+      ipcRenderer.removeListener("request-force-autosave", subscription);
+  },
+  confirmSaveFinished: () => ipcRenderer.send("force-autosave-finished"),
   maximize: () => ipcRenderer.invoke("window-maximize-request"),
   unmaximize: () => ipcRenderer.invoke("window-unmaximize-request"),
   close: () => ipcRenderer.invoke("window-close-request"),

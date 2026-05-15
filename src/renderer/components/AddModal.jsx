@@ -49,6 +49,12 @@ export default function AddModal({ isOpen, onClose, onSuccess }) {
             onChange={(e) => setName(e.target.value)}
           />
 
+          <MyInput
+            placeholder="Path"
+            value={path}
+            onChange={(e) => setPath(e.target.value)}
+          />
+
           <div className="flex flex-col">
             <h1 className="text-2xl p-2">Game Type</h1>
             <select
@@ -60,12 +66,6 @@ export default function AddModal({ isOpen, onClose, onSuccess }) {
               <option value="SugarCube">SugarCube</option>
             </select>
           </div>
-
-          <MyInput
-            placeholder="Path"
-            value={path}
-            onChange={(e) => setPath(e.target.value)}
-          />
           <button
             className="bg-primary-500 text-white rounded-xl p-2 m-2"
             onClick={(e) => {

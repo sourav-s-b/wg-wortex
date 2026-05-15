@@ -15,7 +15,14 @@ export function registerSaveIpc() {
 
       if (!fs.existsSync(gameSavesPath)) {
         await fs.ensureDir(path.join(gameSavesPath, "Default"));
-        return { success: true, data: [{ playthrough: "Default", saves: [] }] };
+        await fs.ensureDir(path.join(gameSavesPath, "AutoSave"));
+        return {
+          success: true,
+          data: [
+            { playthrough: "AutoSave", saves: [] },
+            { playthrough: "Default", saves: [] },
+          ],
+        };
       }
 
       const playthroughs = await fs.readdir(gameSavesPath);
@@ -26,10 +33,25 @@ export function registerSaveIpc() {
           const stat = await fs.stat(playthroughPath);
           if (stat.isDirectory()) {
             const files = await fs.readdir(playthroughPath);
-            const saves = files
-              .filter((file) => file.endsWith(".json"))
-              .map((file) => path.parse(file).name);
-
+            const saves = await Promise.all(
+              files
+                .filter((file) => file.endsWith(".json"))
+                .map(async (file) => {
+                  const name = path.parse(file).name;
+                  const fileStat = await fs.stat(
+                    path.join(playthroughPath, file),
+                  );
+                  return {
+                    name: name,
+                    createdAt: fileStat.birthtime,
+                  };
+                }),
+            );
+            saves.sort((a, b) => {
+              const timeA = a.createdAt ? a.createdAt.getTime() : 0;
+              const timeB = b.createdAt ? b.createdAt.getTime() : 0;
+              return timeB - timeA;
+            });
             return { playthrough, saves };
           }
           return null;

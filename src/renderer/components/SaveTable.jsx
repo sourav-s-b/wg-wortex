@@ -59,22 +59,25 @@ export default function SaveTable({
     await onLoad(saveName, activePlaythrough.playthrough);
   };
 
-  const SaveTab = ({ saveName }) => {
+  const SaveTab = ({ save }) => {
+    const formattedTime = new Date(save.createdAt).toLocaleString();
+
     return (
       <div className="h-full flex m-2 border-2 rounded-sm p-2 items-center">
         <p className="block flex-1 text-center text-2xl font-semibold">
-          {saveName}
+          {save.name}
         </p>
+        <p className="text-xs opacity-60">{formattedTime}</p>
         <button
-          className=" hover:bg-primary-500 p-2 m-2 border-2 rounded-xl"
-          onClick={() => handleLoad(saveName)}
+          className="hover:bg-primary-500 p-2 m-2 border-2 rounded-xl"
+          onClick={() => handleLoad(save.name)}
         >
           Load
         </button>
         <button
           className="bg-red-500 hover:bg-red-900 p-2 m-2 border-2 rounded-xl"
           onClick={() => {
-            handleSaveDelete(saveName);
+            handleSaveDelete(save.name);
           }}
         >
           <Trash />
@@ -103,12 +106,16 @@ export default function SaveTable({
               {saveData.map((playthrough, index) => (
                 <button
                   key={index}
-                  className="hover:bg-primary-700"
+                  className={`hover:bg-primary-700 `}
                   onClick={() => {
                     setSelectedPlaythrough(playthrough.playthrough);
                   }}
                 >
-                  {playthrough.playthrough}
+                  <p
+                    className={`${selectedPlaythrough === playthrough.playthrough ? "font-extrabold " : ""}`}
+                  >
+                    {playthrough.playthrough}
+                  </p>
                 </button>
               ))}
             </div>
@@ -126,8 +133,8 @@ export default function SaveTable({
         <div>
           {activePlaythrough && activePlaythrough.saves.length != 0 ? (
             <div className="h-full flex flex-col">
-              {activePlaythrough.saves.map((saveName, index) => (
-                <SaveTab key={index} saveName={saveName} />
+              {activePlaythrough.saves.map((save, index) => (
+                <SaveTab key={index} save={save} />
               ))}
             </div>
           ) : (
