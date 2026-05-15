@@ -12,12 +12,15 @@ export const dbManager = {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         path TEXT NOT NULL,
+        type TEXT DEFAULT "DEFAULT",
         lastPlayed DATETIME,
         playTime INTEGER DEFAULT 0
       )
     `),
-  addGame: (name, path) =>
-    db.prepare("INSERT INTO games (name,path) VALUES (? , ?)").run(name, path),
+  addGame: (name, path, type) =>
+    db
+      .prepare("INSERT INTO games (name,path,type) VALUES (? , ? , ?)")
+      .run(name, path, type),
   getGames: () => db.prepare("SELECT * FROM games").all(),
   getGame: (id) => db.prepare("SELECT * FROM games WHERE id = ?").get(id),
   updateLastPlayed: (id) =>

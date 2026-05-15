@@ -20,13 +20,19 @@ contextBridge.exposeInMainWorld("windowAPI", {
 contextBridge.exposeInMainWorld("dbAPI", {
   getGames: () => ipcRenderer.invoke("get-games"),
   getGame: (id) => ipcRenderer.invoke("get-game", id),
-  addGame: (name, path) => ipcRenderer.invoke("add-game", name, path),
+  addGame: (name, path, type) =>
+    ipcRenderer.invoke("add-game", name, path, type),
 });
 
 contextBridge.exposeInMainWorld("saveAPI", {
   getSaves: (gameName) => ipcRenderer.invoke("get-saves", gameName),
   saveGame: (gameName, saveName, playthrough = "Default", payload) =>
-    ipcRenderer.invoke("manual-save", { gameName, saveName, playthrough , payload }),
+    ipcRenderer.invoke("manual-save", {
+      gameName,
+      saveName,
+      playthrough,
+      payload,
+    }),
   deleteSave: (gameName, playthrough, saveName) =>
     ipcRenderer.invoke("delete-save", { gameName, playthrough, saveName }),
   loadSave: (gameName, playthrough, saveName) =>

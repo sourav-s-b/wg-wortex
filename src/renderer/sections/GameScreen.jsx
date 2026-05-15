@@ -4,6 +4,178 @@ import { useParams } from "react-router-dom";
 import { NavLink } from "react-router-dom";
 import SaveTable from "../components/SaveTable";
 
+const sugarExtractorScript = `
+  (async function() {
+    try {
+      await new Promise((resolve, reject) => {
+        const start = Date.now();
+        const interval = setInterval(() => {
+          if (typeof SugarCube !== 'undefined' && SugarCube.Save) {
+            clearInterval(interval);
+            resolve();
+          } else if (Date.now() - start > 10000) {
+            clearInterval(interval);
+            reject(new Error('SugarCube.Save never became available'));
+          }
+        }, 100);
+      });
+
+      const SC = window.SugarCube;
+
+      // Support both new (2.37+) and legacy API
+      let base64Save;
+      if (SC.Save.base64) {
+        base64Save = SC.Save.base64.save();
+      } else if (typeof SC.Save.serialize === 'function') {
+        base64Save = SC.Save.serialize();
+      } else {
+        throw new Error('No supported Save API found on this SugarCube version');
+      }
+
+      if (!base64Save) throw new Error('Save returned empty — are you on the opening passage?');
+
+      return { sugarCubeSave: base64Save };
+    } catch (e) {
+      return { error: e.message };
+    }
+  })();
+`;
+const genericExtractorScript = `
+  (async function() {
+    try {
+      const exportData = { localStorage: { ...localStorage }, indexedDB: {} };
+      const dbs = await indexedDB.databases();
+
+      for (const dbInfo of dbs) {
+        const dbData = await new Promise((resolve, reject) => {
+          const openReq = indexedDB.open(dbInfo.name);
+          openReq.onerror = () => reject('Failed to open DB ');
+
+          openReq.onsuccess = async () => {
+            const db = openReq.result;
+            const currentDbData = { version: db.version, stores: {} };
+            const storeNames = Array.from(db.objectStoreNames);
+
+            const storePromises = storeNames.map(name => {
+              return new Promise((res) => {
+                const tx = db.transaction(name, "readonly");
+                const store = tx.objectStore(name);
+                const config = { keyPath: store.keyPath, autoIncrement: store.autoIncrement };
+                const getReq = store.getAll();
+                getReq.onsuccess = () => res({ name, config, data: getReq.result });
+              });
+            });
+
+            const results = await Promise.all(storePromises);
+            results.forEach(r => {
+              currentDbData.stores[r.name] = { config: r.config, data: r.data };
+            });
+
+            db.close();
+            resolve(currentDbData);
+          };
+        });
+        exportData.indexedDB[dbInfo.name] = dbData;
+      }
+      return exportData;
+    } catch (e) {
+      return { error: e.message };
+    }
+  })();
+`;
+const getSugarLoaderScript = (saveData) => `
+  (async function() {
+    try {
+      const base64Save = ${JSON.stringify(saveData.sugarCubeSave)};
+
+      await new Promise((resolve, reject) => {
+        const start = Date.now();
+        const interval = setInterval(() => {
+          if (typeof SugarCube !== 'undefined' && SugarCube.Save) {
+            clearInterval(interval);
+            resolve();
+          } else if (Date.now() - start > 10000) {
+            clearInterval(interval);
+            reject(new Error('SugarCube never became available'));
+          }
+        }, 100);
+      });
+
+      const SC = window.SugarCube;
+      sessionStorage.clear();
+
+      // Support both new (2.37+) and legacy API
+      if (SC.Save.base64) {
+        await SC.Save.base64.load(base64Save);
+      } else if (typeof SC.Save.deserialize === 'function') {
+        SC.Save.deserialize(base64Save);
+      } else {
+        throw new Error('No supported Load API found on this SugarCube version');
+      }
+
+      SC.Engine.show();
+      return { success: true };
+    } catch (e) {
+      return { error: e.message };
+    }
+  })();
+`;
+const getGenericLoaderScript = (saveData) => `
+  (async function() {
+    try {
+      const backup = ${JSON.stringify(saveData)};
+
+      // 1. Restore LocalStorage
+      localStorage.clear();
+      Object.keys(backup.localStorage).forEach(k => {
+        localStorage.setItem(k, backup.localStorage[k]);
+      });
+
+      // 2. Restore IndexedDB
+      const dbPromises = Object.entries(backup.indexedDB).map(([dbName, dbContent]) => {
+        return new Promise((resolve, reject) => {
+          const delReq = indexedDB.deleteDatabase(dbName);
+
+          delReq.onsuccess = () => {
+            const req = indexedDB.open(dbName, dbContent.version);
+
+            req.onupgradeneeded = (e) => {
+              const db = e.target.result;
+              for (const [storeName, storeContent] of Object.entries(dbContent.stores)) {
+                db.createObjectStore(storeName, storeContent.config);
+              }
+            };
+
+            req.onsuccess = (e) => {
+              const db = e.target.result;
+              const storeNames = Object.keys(dbContent.stores);
+              if (storeNames.length === 0) return resolve();
+
+              const tx = db.transaction(storeNames, "readwrite");
+              tx.oncomplete = () => {
+                db.close();
+                resolve();
+              };
+              tx.onerror = (err) => reject(err);
+
+              for (const [storeName, storeContent] of Object.entries(dbContent.stores)) {
+                const store = tx.objectStore(storeName);
+                storeContent.data.forEach(item => store.put(item));
+              }
+            };
+            req.onerror = (err) => reject(err);
+          };
+        });
+      });
+
+      await Promise.all(dbPromises);
+      return { success: true };
+    } catch (e) {
+      return { error: e.message };
+    }
+  })();
+`;
+
 export default function GameScreen() {
   const { id } = useParams();
   const [game, setGame] = useState(null);
@@ -25,7 +197,17 @@ export default function GameScreen() {
     const webview = webviewRef.current;
     if (!webview) return;
 
-    const handleDomReady = () => {
+    const handleDomReady = async () => {
+      const diagnosis = await webviewRef.current.executeJavaScript(`
+        ({
+          hasSave: typeof SugarCube !== 'undefined' && typeof SugarCube.Save,
+          hasEngine: typeof SugarCube !== 'undefined' && typeof SugarCube.Engine,
+          hasBase64: typeof SugarCube !== 'undefined' && typeof SugarCube.Save?.base64,
+          localStorageKeys: Object.keys(localStorage),
+          title: document.title,
+        })
+      `);
+      console.log("WEBVIEW DIAGNOSIS:", diagnosis);
       webview.insertCSS(`
           ::-webkit-scrollbar {
             width: 8px;
@@ -74,57 +256,22 @@ export default function GameScreen() {
 
   const handleNewSave = async (saveName, playthrough) => {
     if (!webviewRef.current) return alert("Game is not running!");
+    let payloadData;
 
-    const extractorScript = `
-      (async function() {
-        try {
-          const exportData = { localStorage: { ...localStorage }, indexedDB: {} };
-          const dbs = await indexedDB.databases();
-
-          for (const dbInfo of dbs) {
-            const dbData = await new Promise((resolve, reject) => {
-              const openReq = indexedDB.open(dbInfo.name);
-              openReq.onerror = () => reject('Failed to open DB ');
-
-              openReq.onsuccess = async () => {
-                const db = openReq.result;
-                const currentDbData = { version: db.version, stores: {} };
-                const storeNames = Array.from(db.objectStoreNames);
-
-                // PRO TIP: Read all stores at once to keep the transaction alive
-                const storePromises = storeNames.map(name => {
-                  return new Promise((res) => {
-                    const tx = db.transaction(name, "readonly");
-                    const store = tx.objectStore(name);
-                    const config = { keyPath: store.keyPath, autoIncrement: store.autoIncrement };
-                    const getReq = store.getAll();
-                    getReq.onsuccess = () => res({ name, config, data: getReq.result });
-                  });
-                });
-
-                const results = await Promise.all(storePromises);
-                results.forEach(r => {
-                  currentDbData.stores[r.name] = { config: r.config, data: r.data };
-                });
-
-                db.close();
-                resolve(currentDbData);
-              };
-            });
-            exportData.indexedDB[dbInfo.name] = dbData;
-          }
-          // Just return the object—Electron handles the rest!
-          return exportData;
-        } catch (e) {
-          return { error: e.message };
-        }
-      })();
-    `;
+    console.log("Sugar", game.type);
 
     try {
-      const payloadData =
-        await webviewRef.current.executeJavaScript(extractorScript);
-
+      if (game.type === "SugarCube") {
+        payloadData =
+          await webviewRef.current.executeJavaScript(sugarExtractorScript);
+        if (payloadData?.error) {
+          return alert("SugarCube save failed: " + payloadData.error);
+        }
+      } else {
+        payloadData = await webviewRef.current.executeJavaScript(
+          genericExtractorScript,
+        );
+      }
       console.log(payloadData);
 
       const data = await window.saveAPI.saveGame(
@@ -154,97 +301,53 @@ export default function GameScreen() {
 
     if (data.success === false) return alert(data.error);
 
-    setIsGameVisible(false);
-
-    // FIX: Access the underlying webContents
     const webview = webviewRef.current;
 
-    try {
-      // Check if the method exists before calling it
-      if (typeof webview.executeJavaScript === "function") {
-        await webview.executeJavaScript(`
-          localStorage.clear();
-              (async () => {
-                const dbs = await indexedDB.databases();
-                await Promise.all(dbs.map(db => new Promise(resolve => {
-                  const req = indexedDB.deleteDatabase(db.name);
-                  req.onsuccess = resolve;
-                  req.onerror = resolve;
-                })));
-              })();
-        `);
+    if (game.type === "SugarCube") {
+      try {
+        const result = await webview.executeJavaScript(
+          getSugarLoaderScript(data.data),
+        );
+        if (result?.error) throw new Error(result.error);
+        console.log("SugarCube save injected instantly!");
+      } catch (err) {
+        alert("Failed to load SugarCube save: " + err.message);
       }
-    } catch (err) {
-      console.warn("Manual clear failed, proceeding to injection:", err);
-    }
+    } else {
+      setIsGameVisible(false);
 
-    const loaderScript = `
-      (async function() {
-        try {
-          const backup = ${JSON.stringify(data.data)}; // Directly stringify the object into the script
-
-          // 1. Restore LocalStorage
-          localStorage.clear();
-          Object.keys(backup.localStorage).forEach(k => {
-            localStorage.setItem(k, backup.localStorage[k]);
-          });
-
-          // 2. Restore IndexedDB
-          const dbPromises = Object.entries(backup.indexedDB).map(([dbName, dbContent]) => {
-            return new Promise((resolve, reject) => {
-              // Delete old DB first to ensure a clean slate for the version change
-              const delReq = indexedDB.deleteDatabase(dbName);
-
-              delReq.onsuccess = () => {
-                const req = indexedDB.open(dbName, dbContent.version);
-
-                req.onupgradeneeded = (e) => {
-                  const db = e.target.result;
-                  for (const [storeName, storeContent] of Object.entries(dbContent.stores)) {
-                    db.createObjectStore(storeName, storeContent.config);
-                  }
-                };
-
-                req.onsuccess = (e) => {
-                  const db = e.target.result;
-                  const storeNames = Object.keys(dbContent.stores);
-                  if (storeNames.length === 0) return resolve();
-
-                  const tx = db.transaction(storeNames, "readwrite");
-                  tx.oncomplete = () => {
-                    db.close();
-                    resolve();
-                  };
-                  tx.onerror = (err) => reject(err);
-
-                  for (const [storeName, storeContent] of Object.entries(dbContent.stores)) {
-                    const store = tx.objectStore(storeName);
-                    storeContent.data.forEach(item => store.put(item));
-                  }
-                };
-                req.onerror = (err) => reject(err);
-              };
-            });
-          });
-
-          await Promise.all(dbPromises);
-          return true;
-        } catch (e) {
-          return { error: e.message };
+      try {
+        // Clear old database
+        if (typeof webview.executeJavaScript === "function") {
+          await webview.executeJavaScript(`
+                localStorage.clear();
+                (async () => {
+                  const dbs = await indexedDB.databases();
+                  await Promise.all(dbs.map(db => new Promise(resolve => {
+                    const req = indexedDB.deleteDatabase(db.name);
+                    req.onsuccess = resolve;
+                    req.onerror = resolve;
+                  })));
+                })();
+              `);
         }
-      })();
-    `;
 
-    try {
-      const result = await webview.executeJavaScript(loaderScript);
-      if (result?.error) throw new Error(result.error);
+        // Inject new data
+        const result = await webview.executeJavaScript(
+          getGenericLoaderScript(data.data),
+        );
+        if (result?.error) throw new Error(result.error);
 
-      webview.reload();
-      // Use a small timeout or wait for 'dom-ready' to show the game again
-      setTimeout(() => setIsGameVisible(true), 500);
-    } catch (err) {
-      alert("Failed to load save data: " + err.message);
-      setIsGameVisible(true);
+        // Reboot the generic engine
+        webview.reload();
+
+        // Wait for dom-ready to handle the un-hiding naturally,
+        // but keep a fallback timeout just in case.
+        setTimeout(() => setIsGameVisible(true), 500);
+      } catch (err) {
+        alert("Failed to load Generic save data: " + err.message);
+        setIsGameVisible(true);
+      }
     }
   };
 

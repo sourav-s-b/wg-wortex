@@ -8,8 +8,8 @@ export const registerDatabaseIpc = () => {
     return dbManager.getGames();
   });
 
-  ipcMain.handle("add-game", async (event, name, path) => {
-    return dbManager.addGame(name, path);
+  ipcMain.handle("add-game", async (event, name, path ,type) => {
+    return dbManager.addGame(name, path , type);
   });
 
   ipcMain.handle("get-game", async (_, id) => {

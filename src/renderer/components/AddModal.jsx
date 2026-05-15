@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 export default function AddModal({ isOpen, onClose, onSuccess }) {
   const [name, setName] = useState("");
   const [path, setPath] = useState("");
+  const [type, setType] = useState("Default");
   useEffect(() => {
     const handleEsc = (event) => {
       if (event.key == "Escape") {
@@ -22,7 +23,7 @@ export default function AddModal({ isOpen, onClose, onSuccess }) {
     if (!name || !path) return alert("Please fill in both fields");
 
     try {
-      const addResult = await window.dbAPI.addGame(name, path);
+      const addResult = await window.dbAPI.addGame(name, path, type);
       console.log(addResult);
       await onSuccess();
       onClose();
@@ -47,6 +48,18 @@ export default function AddModal({ isOpen, onClose, onSuccess }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
+
+          <div className="flex flex-col">
+            <h1 className="text-2xl p-2">Game Type</h1>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="border-2 border-secondary-100 focus:outline-none rounded-3xl focus:border-secondary-500 p-3 bg-white cursor-pointer"
+            >
+              <option value="Default">Default</option>
+              <option value="SugarCube">SugarCube</option>
+            </select>
+          </div>
 
           <MyInput
             placeholder="Path"

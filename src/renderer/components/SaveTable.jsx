@@ -35,7 +35,7 @@ export default function SaveTable({
       alert("Please Type Save Name");
       return;
     }
-    await onSave(saveName, playthrough);
+    await onSave(saveName, selectedPlaythrough);
     setSelectedPlaythrough(selectedPlaythrough ?? "Default");
     await fetchSaves();
   };
