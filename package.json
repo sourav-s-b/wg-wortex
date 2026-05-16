@@ -1,6 +1,6 @@
 {
   "name": "wg-vortex",
-  "version": "1.0.1-alpha.0",
+  "version": "1.0.1-alpha.1",
   "description": "A desktop application to catalog my web games and also add additional saving features.",
   "main": "./out/main/main.js",
   "type": "module",
