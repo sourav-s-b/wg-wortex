@@ -1,7 +1,6 @@
-import { app, ipcMain, session, webContents } from "electron";
+import { app, ipcMain } from "electron";
 import path from "path";
 import fs from "fs-extra";
-import AdmZip from "adm-zip";
 
 const SAVES_PATH = path.join(app.getPath("userData"), "Saves");
 

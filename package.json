@@ -1,7 +1,7 @@
 {
   "name": "wg-vortex",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.1-alpha.0",
+  "description": "A desktop application to catalog my web games and also add additional saving features.",
   "main": "./out/main/main.js",
   "type": "module",
   "scripts": {
@@ -9,7 +9,8 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
-    "dev:browser": "vite"
+    "dev:browser": "vite",
+    "dist": "electron-vite build && electron-builder"
   },
   "keywords": [],
   "author": "",
@@ -18,16 +19,15 @@
     "@tailwindcss/vite": "^4.2.4",
     "@types/better-sqlite3": "^7.6.13",
     "@vitejs/plugin-react": "^5.2.0",
-    "electron-rebuild": "^3.2.9",
+    "electron-builder": "^26.8.1",
     "electron-vite": "^5.0.0",
     "eslint": "^10.3.0",
     "tailwindcss": "^4.2.4",
+    "electron": "^41.3.0",
     "vite": "^7.3.2"
   },
   "dependencies": {
-    "adm-zip": "^0.5.17",
     "better-sqlite3": "^12.9.0",
-    "electron": "^41.3.0",
     "fs-extra": "^11.3.5",
     "lucide-react": "^1.14.0",
     "react": "^19.2.5",
