@@ -46,7 +46,7 @@ export default function SaveTable({
       alert("Please Type playthrough Name");
       return;
     }
-    await onNewPlaythrough(playthrough);
+    await onNewPlaythrough(playthroughName);
     await fetchSaves();
   };
 

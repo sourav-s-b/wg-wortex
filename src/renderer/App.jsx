@@ -1,10 +1,10 @@
-import { useTheme } from "./ThemeContext";
 import TitleBar from "./components/TitleBar";
 import SideMenu from "./components/SideMenu";
 import { HashRouter, Route, Routes } from "react-router-dom";
 import Library from "./sections/Library";
 import Settings from "./sections/Settings";
 import GameScreen from "./sections/GameScreen";
+import Home from "./sections/Home";
 
 export default function App() {
   return (
@@ -14,7 +14,7 @@ export default function App() {
         <div className="relative flex-1 h-full w-full">
           <SideMenu />
           <Routes>
-            <Route path="/" element={<Library />} />
+            <Route path="/" element={<Home />} />
             <Route path="/library" element={<Library />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/game/:id" element={<GameScreen />} />
