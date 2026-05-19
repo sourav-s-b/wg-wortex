@@ -39,7 +39,7 @@ export default function AddModal({ isOpen, onClose, onSuccess }) {
         onClick={onClose}
       />
 
-      <div className="relative bg-background-50 w-full max-w-lg h-125 rounded-3xl shadow-2xl z-10 p-8">
+      <div className="relative bg-background w-full max-w-lg h-125 rounded-2xl shadow-2xl z-10 p-8">
         <h2 className="text-3xl font-bold text-text-100">Add New Game</h2>
         {/* Your form goes here */}
         <form className="flex flex-col h-[80%] justify-around">
@@ -60,14 +60,14 @@ export default function AddModal({ isOpen, onClose, onSuccess }) {
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="border-2 border-secondary-100 focus:outline-none rounded-3xl focus:border-secondary-500 p-3 bg-white cursor-pointer"
+              className="border-2 border-secondary focus:outline-none rounded-2xl focus:border-accent p-3 bg-white text-black cursor-pointer"
             >
               <option value="Default">Default</option>
               <option value="SugarCube">SugarCube</option>
             </select>
           </div>
           <button
-            className="bg-primary-500 text-white rounded-xl p-2 m-2"
+            className="bg-primary text-white rounded-xl p-2 m-2"
             onClick={(e) => {
               onAdd(name, path, e);
             }}
@@ -88,7 +88,7 @@ const MyInput = ({ placeholder, value, onChange }) => {
         placeholder={placeholder + "..."}
         values={value}
         onChange={onChange}
-        className="border-2 border-secondary-100 focus:outline-none rounded-3xl focus:border-secondary-500 p-2"
+        className="border-2 border-secondary focus:outline-none rounded-2xl focus:border-accent p-2"
       />
     </div>
   );

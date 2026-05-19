@@ -32,22 +32,30 @@ export default function SideMenu() {
   }, [isOpen]);
 
   return (
-    <div ref={menuRef} className="absolute top-0">
+    <div ref={menuRef} className="">
       {/* Toggle Button */}
       <button
-        className="absolute top-5.25 left-5 z-40 rounded-sm bg-transparent text-text-50"
-        onClick={() => setIsOpen(!isOpen)}
+        className="rounded-sm bg-transparent text-text m-1 p-2"
+        onClick={() => setIsOpen(true)}
         aria-label="Toggle Menu"
       >
-        {isOpen ? <X size={24} strokeWidth={2} /> : <Menu size={24} strokeWidth={2} />}
+        <Menu size={24} strokeWidth={2} />
       </button>
 
       {/* Sidebar Panel */}
       <div
-        className={`fixed top-10 w-[30vh] h-[calc(100vh-40px)] bg-primary-100 border-r-2 border-secondary-200 transition-transform duration-300
+        className={`fixed top-10 z-50 w-[30vh] h-[calc(100vh-40px)] bg-secondary border-r-2 border-primary transition-transform duration-300
                 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        <div className="flex flex-col h-full pt-20 pb-5 mx-5 gap-5 items-start text-[25px]">
+        <button
+          className="rounded-sm bg-transparent text-text mt-5 ml-5 border-text hover:bg-primary"
+          onClick={() => setIsOpen(false)}
+          aria-label="Toggle Menu"
+        >
+          <X size={24} strokeWidth={2} />
+        </button>
+
+        <div className="flex flex-col h-full pt-10 pb-5 mx-5 gap-5 items-start text-[25px]">
           <NavLink
             to="/"
             className="hover:scale-[1.2] transition-transform duration-200"
@@ -69,9 +77,6 @@ export default function SideMenu() {
           >
             Settings
           </NavLink>
-          
-          <div className="flex-1" />
-          <ThemeToggle />
         </div>
       </div>
     </div>

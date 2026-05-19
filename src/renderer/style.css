@@ -1,220 +1,75 @@
 @import "tailwindcss";
 
-/* 1. Global Reset & Electron Configuration */
 html,
 body,
 #root {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    font-family: "ShareTechMono";
 }
 
 .drag-region {
-  -webkit-app-region: drag;
+    -webkit-app-region: drag;
 }
 
 .no-drag {
-  -webkit-app-region: no-drag;
+    -webkit-app-region: no-drag;
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
+    width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--accent-800); /* Use a color from your palette */
-  border-radius: 10px;
+    background: var(--accent);
+    border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-400);
+    background: var(--accent);
 }
 
-/* 2. Tailwind v4 Theme Mapping */
-/* Mapping these allows you to use classes like bg-primary-500 or text-secondary-200 */
+@font-face {
+    font-family: "ShareTechMono";
+    src: url("./assets/fonts/ShareTechMono-Regular.ttf");
+    font-weight: normal;
+    font-style: normal;
+}
+
 @theme {
-  --color-primary-50: var(--primary-50);
-  --color-primary-100: var(--primary-100);
-  --color-primary-200: var(--primary-200);
-  --color-primary-300: var(--primary-300);
-  --color-primary-400: var(--primary-400);
-  --color-primary-500: var(--primary-500);
-  --color-primary-600: var(--primary-600);
-  --color-primary-700: var(--primary-700);
-  --color-primary-800: var(--primary-800);
-  --color-primary-900: var(--primary-900);
-  --color-primary-950: var(--primary-950);
+    /*colors*/
+    --color-primary: var(--primary);
+    --color-background: var(--background);
+    --color-text: var(--text);
+    --color-secondary: var(--secondary);
+    --color-accent: var(--accent);
 
-  --color-background-50: var(--background-50);
-  --color-background-100: var(--background-100);
-  --color-background-200: var(--background-200);
-  --color-background-300: var(--background-300);
-  --color-background-400: var(--background-400);
-  --color-background-500: var(--background-500);
-  --color-background-600: var(--background-600);
-  --color-background-700: var(--background-700);
-  --color-background-800: var(--background-800);
-  --color-background-900: var(--background-900);
-  --color-background-950: var(--background-950);
-
-  --color-text-50: var(--text-50);
-  --color-text-100: var(--text-100);
-  --color-text-200: var(--text-200);
-  --color-text-300: var(--text-300);
-  --color-text-400: var(--text-400);
-  --color-text-500: var(--text-500);
-  --color-text-600: var(--text-600);
-  --color-text-700: var(--text-700);
-  --color-text-800: var(--text-800);
-  --color-text-900: var(--text-900);
-  --color-text-950: var(--text-950);
-
-  --color-secondary-50: var(--secondary-50);
-  --color-secondary-100: var(--secondary-100);
-  --color-secondary-200: var(--secondary-200);
-  --color-secondary-300: var(--secondary-300);
-  --color-secondary-400: var(--secondary-400);
-  --color-secondary-500: var(--secondary-500);
-  --color-secondary-600: var(--secondary-600);
-  --color-secondary-700: var(--secondary-700);
-  --color-secondary-800: var(--secondary-800);
-  --color-secondary-900: var(--secondary-900);
-  --color-secondary-950: var(--secondary-950);
-
-  --color-accent-50: var(--accent-50);
-  --color-accent-100: var(--accent-100);
-  --color-accent-200: var(--accent-200);
-  --color-accent-300: var(--accent-300);
-  --color-accent-400: var(--accent-400);
-  --color-accent-500: var(--accent-500);
-  --color-accent-600: var(--accent-600);
-  --color-accent-700: var(--accent-700);
-  --color-accent-800: var(--accent-800);
-  --color-accent-900: var(--accent-900);
-  --color-accent-950: var(--accent-950);
+    /*fonts*/
+    --font-stm: "ShareTechMono", sans-serif;
 }
 
 /* 3. Color Definitions (Light/Dark) */
 @layer base {
-  :root {
-    --text-50: #020b17;
-    --text-100: #05152e;
-    --text-200: #0a2b5c;
-    --text-300: #0f408a;
-    --text-400: #1355b9;
-    --text-500: #186be7;
-    --text-600: #4688ec;
-    --text-700: #75a6f0;
-    --text-800: #a3c4f5;
-    --text-900: #d1e1fa;
-    --text-950: #e8f0fd;
-    --background-50: #e7f2fd;
-    --background-100: #cfe4fc;
-    --background-200: #a0c9f8;
-    --background-300: #70aef5;
-    --background-400: #4093f2;
-    --background-500: #1178ee;
-    --background-600: #0d60bf;
-    --background-700: #0a488f;
-    --background-800: #07305f;
-    --background-900: #031830;
-    --background-950: #020c18;
-    --primary-50: #e8eefd;
-    --primary-100: #d0defb;
-    --primary-200: #a1bcf7;
-    --primary-300: #729bf3;
-    --primary-400: #437aef;
-    --primary-500: #1458eb;
-    --primary-600: #1047bc;
-    --primary-700: #0c358d;
-    --primary-800: #08235e;
-    --primary-900: #04122f;
-    --primary-950: #020917;
-    --secondary-50: #ebe8fd;
-    --secondary-100: #d7d0fb;
-    --secondary-200: #afa1f7;
-    --secondary-300: #8872f3;
-    --secondary-400: #6043ef;
-    --secondary-500: #3814eb;
-    --secondary-600: #2d10bc;
-    --secondary-700: #220c8d;
-    --secondary-800: #16085e;
-    --secondary-900: #0b042f;
-    --secondary-950: #060217;
-    --accent-50: #ede7fd;
-    --accent-100: #dbd0fb;
-    --accent-200: #b6a1f7;
-    --accent-300: #9271f4;
-    --accent-400: #6e42f0;
-    --accent-500: #4913ec;
-    --accent-600: #3b0fbd;
-    --accent-700: #2c0b8e;
-    --accent-800: #1d085e;
-    --accent-900: #0f042f;
-    --accent-950: #070218;
-  }
+    :root {
+        --text: #030704;
+        --background: #f8fcf9;
+        --primary: #44cf6e;
+        --secondary: #80eaa0;
+        --accent: #46f179;
+    }
 
-  .dark {
-    --text-50: #e8f0fd;
-    --text-100: #d1e1fa;
-    --text-200: #a3c4f5;
-    --text-300: #75a6f0;
-    --text-400: #4688ec;
-    --text-500: #186be7;
-    --text-600: #1355b9;
-    --text-700: #0f408a;
-    --text-800: #0a2b5c;
-    --text-900: #05152e;
-    --text-950: #020b17;
-    --background-50: #020c18;
-    --background-100: #031830;
-    --background-200: #07305f;
-    --background-300: #0a488f;
-    --background-400: #0d60bf;
-    --background-500: #1178ee;
-    --background-600: #4093f2;
-    --background-700: #70aef5;
-    --background-800: #a0c9f8;
-    --background-900: #cfe4fc;
-    --background-950: #e7f2fd;
-    --primary-50: #020917;
-    --primary-100: #04122f;
-    --primary-200: #08235e;
-    --primary-300: #0c358d;
-    --primary-400: #1047bc;
-    --primary-500: #1458eb;
-    --primary-600: #437aef;
-    --primary-700: #729bf3;
-    --primary-800: #a1bcf7;
-    --primary-900: #d0defb;
-    --primary-950: #e8eefd;
-    --secondary-50: #060217;
-    --secondary-100: #0b042f;
-    --secondary-200: #16085e;
-    --secondary-300: #220c8d;
-    --secondary-400: #2d10bc;
-    --secondary-500: #3814eb;
-    --secondary-600: #6043ef;
-    --secondary-700: #8872f3;
-    --secondary-800: #afa1f7;
-    --secondary-900: #d7d0fb;
-    --secondary-950: #ebe8fd;
-    --accent-50: #070218;
-    --accent-100: #0f042f;
-    --accent-200: #1d085e;
-    --accent-300: #2c0b8e;
-    --accent-400: #3b0fbd;
-    --accent-500: #4913ec;
-    --accent-600: #6e42f0;
-    --accent-700: #9271f4;
-    --accent-800: #b6a1f7;
-    --accent-900: #dbd0fb;
-    --accent-950: #ede7fd;
-  }
+    .dark {
+        --text: #f8fcf9;
+        --background: #030704;
+        --primary: #30bb5a;
+        --secondary: #157f35;
+        --accent: #0eb941;
+    }
 }

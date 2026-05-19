@@ -176,7 +176,7 @@ const getGenericLoaderScript = (saveData) => `
   })();
 `;
 
-export default function GameScreen() {
+export default function GameScreen({ isFullScreen, setIsFullScreen }) {
   const { id } = useParams();
   const [game, setGame] = useState(null);
   const [isGameVisible, setIsGameVisible] = useState(false);
@@ -402,19 +402,32 @@ export default function GameScreen() {
   return (
     <div className="h-full overflow-y-auto">
       {/* Title And Button*/}
-      <div className="sticky top-0 flex h-[8.25vh] items-center px-15 bg-background-50 border-b-2 border-text-50 ">
+      <div className="flex h-[8.25vh] items-center px-2 ">
         <button onClick={handleBackNavigation} className="cursor-pointer">
           <ArrowLeft />
         </button>
-        <h1 className="text-7xl font-semibold flex-1 text-center">
-          {game.name}
-        </h1>
+        <button
+          className="cursor-pointer bg-secondary rounded-xl p-2 ml-5 border-2 border-accent hover:bg-primary"
+          onClick={() => {
+            setIsFullScreen(!isFullScreen);
+          }}
+        >
+          FullScreen
+        </button>
+        <div className="flex-1"></div>
+        <h1 className="text-5xl text-center">{game.name}</h1>
       </div>
       {/* WebView */}
 
-      <div className="relative h-[84vh] m-3 border-2">
+      <div
+        className={
+          !isFullScreen
+            ? `relative h-[84vh] m-3 border-2`
+            : `absolute inset-0 h-[99vh] w-full m-3 overflow-y-auto`
+        }
+      >
         {!isGameVisible && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background-50">
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background">
             <div className="text-2xl font-bold animate-pulse text-center">
               Loading Save Data...
             </div>
@@ -427,16 +440,29 @@ export default function GameScreen() {
           partition={`${game.name.replace(/\s+/g, "_").toLowerCase()}`}
           className="w-full h-full"
         />
-      </div>
+        <SaveTable
+          gameName={game.name}
+          onSave={handleNewSave}
+          onNewPlaythrough={handleNewPlaythrough}
+          onSaveDelete={handleSaveDelete}
+          onLoad={handleLoadSave}
+        />
 
-      <SaveTable
-        gameName={game.name}
-        onSave={handleNewSave}
-        onNewPlaythrough={handleNewPlaythrough}
-        onSaveDelete={handleSaveDelete}
-        onLoad={handleLoadSave}
-      />
-      <div className="h-[6vh]" />
+        {isFullScreen && (
+          <div className="flex justify-center">
+            <button
+              className="cursor-pointer bg-secondary rounded-xl p-2 ml-5 mb-5 border-2 border-accent hover:bg-primary"
+              onClick={() => {
+                setIsFullScreen(!isFullScreen);
+              }}
+            >
+              FullScreen
+            </button>
+          </div>
+        )}
+
+        <div className="h-[2vh]" />
+      </div>
     </div>
   );
 }

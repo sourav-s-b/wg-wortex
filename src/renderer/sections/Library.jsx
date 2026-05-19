@@ -2,6 +2,7 @@ import { BadgePlus, RefreshCcw } from "lucide-react";
 import AddModal from "../components/AddModal";
 import { useEffect, useState } from "react";
 import GameCard from "../components/GameCard";
+import SideMenu from "../components/SideMenu";
 
 export default function Library() {
   const [isModel, setIsModel] = useState(false);
@@ -17,7 +18,7 @@ export default function Library() {
   };
 
   return (
-    <div className="h-full">
+    <div className="h-full w-full">
       {isModel && (
         <AddModal
           onClose={() => {
@@ -26,38 +27,35 @@ export default function Library() {
           onSuccess={fetchGames}
         />
       )}
-      <section className="p-2 h-full flex flex-col gap-2">
-        {/* title */}
-        <h1 className="font-extrabold text-7xl w-full text-center p-2 ">
-          Library
-        </h1>
+      {/* search & options */}
+      <div className="flex h-1/13 justify-center items-center">
+        <SideMenu />
+        <input
+          className="bg-secondary border-accent border rounded-xl h-10 pl-2 w-1/4 focus:outline-none focus:border-red-500"
+          placeholder="Name..."
+        />
 
-        {/* search & options */}
-        <div className="w-full bg-background-100 p-5 border-2 border-primary-200 rounded-2xl flex">
-          <input
-            className="bg-secondary-200 border rounded p-2 w-1/4 focus:outline-none focus:border-primary-500"
-            placeholder="Name..."
-          />
-          {/* spacer */}
-          <div className="flex-1" />
+        <button
+          type="button"
+          onClick={() => fetchGames()}
+          className="w-1/20 mx-2 py-2  bg-secondary border-2 border-accent flex justify-center items-center hover:bg-primary focus:outline-none"
+        >
+          <RefreshCcw />
+        </button>
+        <button
+          onClick={() => setIsModel(true)}
+          className="w-1/20 mx-2 py-2 bg-secondary border-2 border-accent flex justify-center items-center hover:bg-primary focus:outline-none"
+        >
+          <BadgePlus />
+        </button>
 
-          <button
-            type="button"
-            onClick={() => fetchGames()}
-            className="w-1/20 h-full mx-2 bg-primary-300 border-2 border-secondary-400 flex justify-center items-center hover:bg-primary-200 focus:outline-none"
-          >
-            <RefreshCcw />
-          </button>
-          <button
-            onClick={() => setIsModel(true)}
-            className="w-1/20 h-full mx-2 bg-primary-300 border-2 border-secondary-400 flex justify-center items-center hover:bg-primary-200 focus:outline-none"
-          >
-            <BadgePlus />
-          </button>
-        </div>
-
+        {/* spacer */}
+        <div className="flex-1" />
+        <p className="text-5xl">Library</p>
+      </div>
+      <section className="p-2  h-full flex flex-col gap-2">
         {/* Content*/}
-        <div className="bg-background-200 flex-1 border-primary-600 border-2 rounded-2xl overflow-y-auto min-h-0">
+        <div className="bg-background flex-1 border-secondary border-2 rounded-2xl overflow-y-auto min-h-0">
           {games.length == 0 ? (
             <h1 className="flex text-text-100 items-center justify-center h-full">
               No games added yet..

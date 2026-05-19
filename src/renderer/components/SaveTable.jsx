@@ -69,7 +69,7 @@ export default function SaveTable({
         </p>
         <p className="text-xs opacity-60">{formattedTime}</p>
         <button
-          className="hover:bg-primary-500 p-2 m-2 border-2 rounded-xl"
+          className="hover:bg-primary p-2 m-2 border-2 rounded-xl"
           onClick={() => handleLoad(save.name)}
         >
           Load
@@ -90,9 +90,9 @@ export default function SaveTable({
     (p) => p.playthrough === selectedPlaythrough,
   );
   return (
-    <div className=" h-[50vh] m-2 bg-primary-500/50 border-2 rounded-2xl flex flex-row ">
+    <div className=" h-[50vh] m-2 bg-primary/50 border-2 rounded-2xl flex flex-row ">
       {/* Playthrough coloumn*/}
-      <div className=" bg-primary-700/50 w-[25vw]  border-r-2 rounded-l-2xl">
+      <div className=" bg-primary/50 w-[25vw]  border-r-2 rounded-l-2xl">
         <h2 className="text-text-50 opacity-100 text-xl m-2 text-center border-b-2">
           PLAYTHROUGHS
         </h2>
@@ -106,7 +106,7 @@ export default function SaveTable({
               {saveData.map((playthrough, index) => (
                 <button
                   key={index}
-                  className={`hover:bg-primary-700 `}
+                  className={`hover:bg-primary `}
                   onClick={() => {
                     setSelectedPlaythrough(playthrough.playthrough);
                   }}
@@ -154,7 +154,7 @@ export default function SaveTable({
             onChange={(e) => setSaveName(e.target.value)}
           />
           <button
-            className="bg-green-600 rounded-xl h-10 w-25 border-2 hover:bg-green-800"
+            className="bg-blue-600 rounded-xl h-10 w-25 border-2 hover:bg-green-800"
             onClick={(e) => {
               handleSave(e, saveName);
             }}
